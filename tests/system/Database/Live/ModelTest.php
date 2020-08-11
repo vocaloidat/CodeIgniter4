@@ -1399,6 +1399,66 @@ class ModelTest extends CIDatabaseTestCase
 
 	//--------------------------------------------------------------------
 
+	public function testUpdateBatchWithEntity()
+	{
+		$entity1 = new class extends Entity
+		{
+			protected $id;
+			protected $name;
+			protected $email;
+			protected $country;
+			protected $deleted;
+			protected $created_at;
+			protected $updated_at;
+
+			protected $_options = [
+				'datamap' => [],
+				'dates'   => [
+					'created_at',
+					'updated_at',
+					'deleted_at',
+				],
+				'casts'   => [],
+			];
+		};
+
+		$entity2   = new class extends Entity
+		{
+			protected $id;
+			protected $name;
+			protected $email;
+			protected $country;
+			protected $deleted;
+			protected $created_at;
+			protected $updated_at;
+
+			protected $_options = [
+				'datamap' => [],
+				'dates'   => [
+					'created_at',
+					'updated_at',
+					'deleted_at',
+				],
+				'casts'   => [],
+			];
+		};
+		$testModel = new UserModel();
+
+		$entity1->id      = 1;
+		$entity1->name    = 'Jones Martin';
+		$entity1->country = 'India';
+		$entity1->deleted = 0;
+
+		$entity2->id      = 4;
+		$entity2->name    = 'Jones Martin';
+		$entity2->country = 'India';
+		$entity2->deleted = 0;
+
+		$this->assertEquals(2, $testModel->updateBatch([$entity1, $entity2], 'id'));
+	}
+
+	//--------------------------------------------------------------------
+
 	public function testSelectAndEntitiesSaveOnlyChangedValues()
 	{
 		// Insert value in job table
@@ -1958,6 +2018,42 @@ class ModelTest extends CIDatabaseTestCase
 
 		$error = $model->errors();
 		$this->assertTrue(isset($error['description']));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testInsertBatchNewEntityWithDateTime()
+	{
+		$entity    = new class extends Entity{
+			protected $id;
+			protected $name;
+			protected $email;
+			protected $country;
+			protected $deleted;
+			protected $created_at;
+			protected $updated_at;
+
+			protected $_options = [
+				'datamap' => [],
+				'dates'   => [
+					'created_at',
+					'updated_at',
+					'deleted_at',
+				],
+				'casts'   => [],
+			];
+		};
+		$testModel = new UserModel();
+
+		$entity->name       = 'Mark';
+		$entity->email      = 'mark@example.com';
+		$entity->country    = 'India';
+		$entity->deleted    = 0;
+		$entity->created_at = new Time('now');
+
+		$this->setPrivateProperty($testModel, 'useTimestamps', true);
+
+		$this->assertEquals(2, $testModel->insertBatch([$entity, $entity]));
 	}
 
 	//--------------------------------------------------------------------
